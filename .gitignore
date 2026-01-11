@@ -1,5 +1,1 @@
 node_modules
-
-git add .
-git commit -m "Ultra design update"
-git push origin main
