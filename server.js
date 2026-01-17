@@ -131,6 +131,11 @@ ${details || 'Нет данных'}
         res.sendStatus(500);
     }
 });
+// Эндпоинт для самопроверки и предотвращения "сна"
+app.get('/ping', (req, res) => {
+    console.log('Ping получен: сервер активен');
+    res.send('pong');
+});
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Сервер запущен. Порт: ${PORT}. Админов: ${ADMIN_IDS.length}`));
